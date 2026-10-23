@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
 <style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
 <title>Laboratório da Água</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@600;800&display=swap">
 <style>
+/* Tema claro fixo: as cenas representam o dia (sol, céu claro). O único modo escuro é o Alto contraste, escolhido pelo estudante. */
 /* Layout: laboratório escolar em abas (Bancada, Varal, Ciclo, Registro); cena manipulável no topo, controles grandes e explicação logo abaixo */
 :root{
   --bg:#E9F1F4; --paper:#FFFFFF; --ink:#13232E; --muted:#4F6472; --line:#C3D3DC;
@@ -19,19 +21,8 @@
   --f-display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
   --f-body:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif;
   --fs:17px;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0F1A21; --paper:#16242D; --ink:#E6F0F5; --muted:#9FB3C0; --line:#2A3D49;
-  --water:#4AA3E6; --water-soft:#2C5A7C; --ice:#9FD8F5; --vapor:#9AACB8;
-  --heat:#FF7A45; --cold:#5DB4EE; --sun:#FFC93C; --leaf:#5FB073; --earth:#7E6E52;
-  --sky1:#18324A; --sky2:#0F1F2E; --sea:#235F92; --cloud:#DCE6EC; --cloud-dark:#6B7A85;
-  --accent:#4BC0DE; --accent-ink:#06222B; --ok:#7ED394; --ok-bg:#173324; --chip:#22343F; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0F1A21; --paper:#16242D; --ink:#E6F0F5; --muted:#9FB3C0; --line:#2A3D49;
-  --water:#4AA3E6; --water-soft:#2C5A7C; --ice:#9FD8F5; --vapor:#9AACB8;
-  --heat:#FF7A45; --cold:#5DB4EE; --sun:#FFC93C; --leaf:#5FB073; --earth:#7E6E52;
-  --sky1:#18324A; --sky2:#0F1F2E; --sea:#235F92; --cloud:#DCE6EC; --cloud-dark:#6B7A85;
-  --accent:#4BC0DE; --accent-ink:#06222B; --ok:#7ED394; --ok-bg:#173324; --chip:#22343F; color-scheme:dark}
 /* Alto contraste: escolha do estudante, vale sobre qualquer tema */
 :root[data-contrast="on"]{
   --bg:#000; --paper:#000; --ink:#FFF; --muted:#FFF; --line:#FFF;
@@ -255,7 +246,6 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 let C={};
 function readColors(){const cs=getComputedStyle(document.documentElement);["bg","paper","ink","muted","line","water","water-soft","ice","vapor","heat","cold","sun","leaf","earth","sky1","sky2","sea","cloud","cloud-dark","accent"].forEach(k=>C[k]=cs.getPropertyValue("--"+k).trim());}
 readColors();
-try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",readColors)}catch(e){}
 new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme","data-contrast"]});
 
 /* ---------- acessibilidade ---------- */
@@ -293,7 +283,12 @@ $$(".saw").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{con
 /* ---------- desafios ---------- */
 
 /* ---------- canvas responsivo ---------- */
-function fit(cv){const W=cv.width,H=cv.height;const o={cv,ctx:cv.getContext("2d"),W,H,s:1};function rs(){const w=cv.clientWidth||W;const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(w*dpr);cv.height=Math.round(w*H/W*dpr);o.s=cv.width/W;}const ro=new ResizeObserver(rs);ro.observe(cv);rs();return o;}
+function fit(cv){const W=cv.width,H=cv.height;const o={cv,ctx:cv.getContext("2d"),W,H,s:1};
+  cv.style.aspectRatio=W+" / "+H; /* proporção fixa no CSS: trocar a resolução interna não muda o tamanho na tela */
+  let pending=false;
+  function rs(){pending=false;const w=cv.clientWidth||W;const dpr=Math.min(2,window.devicePixelRatio||1);const nw=Math.round(w*dpr),nh=Math.round(w*H/W*dpr);if(nw!==cv.width||nh!==cv.height){cv.width=nw;cv.height=nh;}o.s=cv.width/W;}
+  try{new ResizeObserver(()=>{if(!pending){pending=true;requestAnimationFrame(rs);}}).observe(cv);}catch(e){window.addEventListener("resize",rs);}
+  rs();return o;}
 function begin(o){o.ctx.setTransform(o.s,0,0,o.s,0,0);o.ctx.clearRect(0,0,o.W,o.H);}
 function ptr(o,e){const r=o.cv.getBoundingClientRect();return{x:(e.clientX-r.left)*o.W/r.width,y:(e.clientY-r.top)*o.H/r.height};}
 
@@ -514,7 +509,7 @@ const Cy={};
 const SEA_X=330, SEA_Y=350, COND_Y=120;
 const mountainY=x=> x<SEA_X?SEA_Y: x<640? SEA_Y-(x-SEA_X)/(640-SEA_X)*190 : Math.min(SEA_Y,160+(x-640)*1.2);
 const riverPath=[[650,175],[600,230],[560,250],[500,290],[440,320],[380,340],[320,352]];
-function resetC(){Cy.vap=[];Cy.rain=[];Cy.run=[];Cy.cloud={x:180,y:95,w:0};Cy.flags={};Cy.drag=null;Cy.lastRain=-9;Cy.lastRun=-9;Cy.t=0;}
+function resetC(){Cy.lastFeed=-99;Cy.lastDiss=-99;Cy.vap=[];Cy.rain=[];Cy.run=[];Cy.cloud={x:180,y:95,w:0};Cy.flags={};Cy.drag=null;Cy.lastRain=-9;Cy.lastRun=-9;Cy.t=0;}
 resetC();
 $("#bResetC").onclick=()=>{resetC();addLog("Ciclo","Recomeçamos o ciclo",null);};
 function flagC(k,w){emit(k);if(Cy.flags[k])return;Cy.flags[k]=1;addLog("Ciclo",w,null);}
@@ -525,10 +520,12 @@ function stepC(dt){
   Cy.t+=dt;const sun=Number($("#sunC").value)/100, wind=Number($("#windC").value)/100;const cl=Cy.cloud;
   if(Math.random()<sun*7*dt)Cy.vap.push({x:rnd(20,SEA_X-10),y:SEA_Y-4});
   Cy.vap.forEach(v=>{v.y-=(35+25*sun)*dt;v.x+=(wind*40+rnd(-10,10))*dt;});
-  Cy.vap=Cy.vap.filter(v=>{if(v.y<COND_Y){cl.w=Math.min(70,cl.w+1);if(cl.w>=6)flagC("cloud","O vapor subiu, esfriou e formou uma nuvem");if(Math.abs(v.x-cl.x)>120&&cl.w<3)cl.x=v.x;return false;}return v.x<800;});
+  Cy.vap=Cy.vap.filter(v=>{if(v.y<COND_Y){cl.w=Math.min(70,cl.w+1);Cy.lastFeed=Cy.t;if(cl.w>=6)flagC("cloud","O vapor subiu, esfriou e formou uma nuvem");if(Math.abs(v.x-cl.x)>120&&cl.w<3)cl.x=v.x;return false;}return v.x<800;});
   if(!Cy.drag)cl.x=Math.min(750,cl.x+wind*30*dt);
   const overM=cl.x>520&&cl.x<760;
-  const raining=cl.w>0&&(cl.w>=55||(overM&&cl.w>=10));
+  const starving=Cy.t-Cy.lastFeed>4;
+  const raining=cl.w>0&&(cl.w>=55||(overM&&cl.w>=10)||(starving&&cl.w>=20));
+  if(starving&&!raining&&cl.w>0){cl.w=Math.max(0,cl.w-2.8*dt);Cy.lastDiss=Cy.t;if(cl.w<0.5){cl.w=0;flagC("diss","Sem vapor novo, a nuvem se desfez");}}
   if(raining){Cy.lastRain=Cy.t;if(Math.random()<14*dt){const rw=30+cl.w*1.2;Cy.rain.push({x:cl.x+rnd(-rw*.6,rw*.6),y:cl.y+20});}if(Math.random()<2.2*dt)cl.w=Math.max(0,cl.w-1);
     flagC(overM?"rainM":"rainS",overM?"Choveu na montanha: no alto, o ar é mais frio":"Choveu sobre o mar");}
   Cy.rain.forEach(r=>{r.y+=260*dt;});
@@ -554,7 +551,8 @@ function drawC(){
   // vapor
   Cy.vap.forEach(v=>{c.globalAlpha=.75;c.fillStyle=C.vapor;c.beginPath();c.arc(v.x,v.y,3.5,0,7);c.fill();});c.globalAlpha=1;
   // nuvem
-  if(cl.w>0){const k=0.5+cl.w/70;const heavy=cl.w>=40;c.fillStyle=heavy?C["cloud-dark"]:C.cloud;c.strokeStyle=C.line;c.lineWidth=2;c.beginPath();[[-40,6,26],[-12,-10,34],[22,-4,30],[48,8,22],[0,12,30]].forEach(([dx,dy,r])=>{c.moveTo(cl.x+dx*k+r*k,cl.y+dy*k);c.arc(cl.x+dx*k,cl.y+dy*k,r*k,0,7);});c.fill();}
+  if(cl.w>0){const k=0.3+cl.w/70*0.9;const heavy=cl.w>=40;c.globalAlpha=Math.min(1,0.25+cl.w/12);c.fillStyle=heavy?C["cloud-dark"]:C.cloud;c.strokeStyle=C.line;c.lineWidth=2;c.beginPath();[[-40,6,26],[-12,-10,34],[22,-4,30],[48,8,22],[0,12,30]].forEach(([dx,dy,r])=>{c.moveTo(cl.x+dx*k+r*k,cl.y+dy*k);c.arc(cl.x+dx*k,cl.y+dy*k,r*k,0,7);});c.fill();}
+  c.globalAlpha=1;
   // chuva
   c.strokeStyle=C.water;c.lineWidth=2.5;Cy.rain.forEach(r=>{c.beginPath();c.moveTo(r.x,r.y);c.lineTo(r.x-2,r.y+9);c.stroke();});
   // escoamento
@@ -562,7 +560,7 @@ function drawC(){
   // rótulos dos processos
   c.font="700 14px Verdana,sans-serif";c.textAlign="center";c.fillStyle=C.ink;
   if(sun>0.05)c.fillText("evaporação",170,SEA_Y-24);
-  if(cl.w>0)c.fillText("condensação",cl.x,cl.y-46);
+  if(cl.w>0)c.fillText(Cy.t-Cy.lastDiss<0.6?"nuvem se desfazendo":"condensação",cl.x,cl.y-46);
   if(Cy.t-Cy.lastRain<1)c.fillText("precipitação",Math.min(720,cl.x+90),cl.y+70);
   if(Cy.t-Cy.lastRun<1.5)c.fillText("escoamento",500,330);
 }
@@ -570,6 +568,7 @@ function explainC(){
   const sun=Number($("#sunC").value)/100;const cl=Cy.cloud;
   if(Cy.t-Cy.lastRain<1)return setExp("#expC","#phaseC","precipitação","A nuvem juntou tantas gotinhas que elas ficaram pesadas e caíram: é a chuva (precipitação). Sobre a montanha chove mais fácil, porque lá em cima o ar é mais frio.","A nuvem ficou pesada. Caiu chuva. Na montanha chove mais.");
   if(Cy.t-Cy.lastRun<1.5)return setExp("#expC","#phaseC","escoamento","A água da chuva desce pela montanha, forma o rio e volta para o mar. Daí ela pode evaporar de novo: o ciclo recomeça.","A água desce pelo rio. Volta para o mar. Tudo começa de novo.");
+  if(cl.w>0&&Cy.t-Cy.lastDiss<0.6)return setExp("#expC","#phaseC","nuvem se desfazendo","A nuvem parou de receber vapor do mar. Ela não some de uma vez, porque já é feita de gotinhas de água: as que pesam caem como chuva e as menores voltam a evaporar no ar, até a nuvem se desfazer.","A nuvem não recebe mais vapor. Ela vai diminuindo até sumir.");
   if(cl.w>0)return setExp("#expC","#phaseC","condensação","O vapor subiu, encontrou o ar frio lá no alto e condensou em gotinhas muito pequenas. Juntas, elas formam a nuvem. Use o vento ou arraste a nuvem até a montanha.","O vapor subiu. Lá em cima é frio. Virou nuvem.");
   if(sun<0.05)return setExp("#expC","#phaseC","parado","Sem sol, a água do mar quase não evapora. Aumente o sol para ver o que acontece.","Sem sol, quase nada acontece. Aumente o sol.");
   setExp("#expC","#phaseC","evaporação","O sol aquece o mar e partículas de água escapam como vapor, sem a água ferver. O vapor é invisível; aqui ele aparece como bolinhas cinza subindo.","O sol esquenta o mar. A água vira vapor. O vapor sobe.");
