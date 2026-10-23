@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Laboratório da Água</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* Layout: laboratório escolar em abas (Bancada, Varal, Ciclo, Registro); cena manipulável no topo, controles grandes e explicação logo abaixo */
+:root{
+  --bg:#E9F1F4; --paper:#FFFFFF; --ink:#13232E; --muted:#4F6472; --line:#C3D3DC;
+  --water:#2477B8; --water-soft:#9CCBEA; --ice:#7FC4E8; --vapor:#8A9BA8;
+  --heat:#D9541E; --cold:#2E8FCF; --sun:#F2B416; --leaf:#3E8A4F; --earth:#B9A27C;
+  --sky1:#CFE7F6; --sky2:#F4FAFD; --sea:#2A6FA8; --cloud:#FFFFFF; --cloud-dark:#7D8B96;
+  --accent:#0F6E8C; --accent-ink:#FFFFFF; --ok:#2E7D43; --ok-bg:#E2F2E6; --chip:#DDE8EE;
+  --f-display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif;
+  --fs:17px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1A21; --paper:#16242D; --ink:#E6F0F5; --muted:#9FB3C0; --line:#2A3D49;
+  --water:#4AA3E6; --water-soft:#2C5A7C; --ice:#9FD8F5; --vapor:#9AACB8;
+  --heat:#FF7A45; --cold:#5DB4EE; --sun:#FFC93C; --leaf:#5FB073; --earth:#7E6E52;
+  --sky1:#18324A; --sky2:#0F1F2E; --sea:#235F92; --cloud:#DCE6EC; --cloud-dark:#6B7A85;
+  --accent:#4BC0DE; --accent-ink:#06222B; --ok:#7ED394; --ok-bg:#173324; --chip:#22343F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1A21; --paper:#16242D; --ink:#E6F0F5; --muted:#9FB3C0; --line:#2A3D49;
+  --water:#4AA3E6; --water-soft:#2C5A7C; --ice:#9FD8F5; --vapor:#9AACB8;
+  --heat:#FF7A45; --cold:#5DB4EE; --sun:#FFC93C; --leaf:#5FB073; --earth:#7E6E52;
+  --sky1:#18324A; --sky2:#0F1F2E; --sea:#235F92; --cloud:#DCE6EC; --cloud-dark:#6B7A85;
+  --accent:#4BC0DE; --accent-ink:#06222B; --ok:#7ED394; --ok-bg:#173324; --chip:#22343F; color-scheme:dark}
+/* Alto contraste: escolha do estudante, vale sobre qualquer tema */
+:root[data-contrast="on"]{
+  --bg:#000; --paper:#000; --ink:#FFF; --muted:#FFF; --line:#FFF;
+  --water:#00B7FF; --water-soft:#004466; --ice:#FFFFFF; --vapor:#FFFF00;
+  --heat:#FF5A00; --cold:#00E5FF; --sun:#FFFF00; --leaf:#00FF66; --earth:#BB8844;
+  --sky1:#000; --sky2:#000; --sea:#0066FF; --cloud:#FFFFFF; --cloud-dark:#AAAAAA;
+  --accent:#FFFF00; --accent-ink:#000; --ok:#00FF66; --ok-bg:#002200; --chip:#222; color-scheme:dark}
+:root[data-big="on"]{--fs:21px}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:var(--fs);line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.6rem,4vw,2.2rem);line-height:1;margin:0}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:.85em}
+.a11y{display:flex;flex-wrap:wrap;gap:6px}
+.a11y button{font:700 .8em var(--f-body);padding:8px 12px;border-radius:999px;border:2px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;min-height:44px}
+.a11y button.restart{border-color:var(--heat);color:var(--heat)}
+.a11y button.restart.confirm{background:var(--heat);color:var(--paper)}
+.a11y button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--line);margin-bottom:14px}
+nav.tabs button{font:700 1em var(--f-body);background:none;border:0;color:var(--muted);padding:10px 14px;border-bottom:4px solid transparent;margin-bottom:-2px;cursor:pointer;white-space:nowrap;display:flex;gap:8px;align-items:center;min-height:48px}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.stage{background:var(--paper);border:2px solid var(--line);border-radius:14px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border-top:2px solid var(--line)}
+.ctl{font:700 .95em var(--f-body);min-height:52px;padding:8px 14px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.ctl svg{width:26px;height:26px;flex:none}
+.ctl[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 18%,var(--paper))}
+.ctl.reset{margin-left:auto}
+.slider{display:flex;align-items:center;gap:10px;flex:1 1 240px;padding:4px 8px}
+.slider label{font-weight:700;white-space:nowrap}
+.slider input{flex:1;min-width:0;height:36px;accent-color:var(--accent)}
+.below{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px;margin-top:14px}
+@media (max-width:760px){.below{grid-template-columns:1fr}}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:14px 16px}
+.card h2{font-family:var(--f-display);font-weight:600;font-size:1.2em;margin:0 0 6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.explain{font-size:1.08em;margin:0 0 10px;min-height:3em}
+.phase{display:inline-block;font-weight:700;font-size:.78em;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--chip);color:var(--ink)}
+.small{font-size:.85em;color:var(--muted)}
+.saw{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.saw button{font:700 .85em var(--f-body);padding:8px 12px;border-radius:999px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;min-height:44px}
+ul.goals{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+ul.goals li{display:flex;gap:10px;align-items:flex-start}
+ul.goals .box{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-weight:800;color:transparent}
+ul.goals li.done .box{background:var(--ok);border-color:var(--ok);color:var(--accent-ink)}
+ul.goals li.done span{color:var(--muted);text-decoration:line-through}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-size:.78em;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.who{white-space:nowrap}
+.pill{display:inline-block;font-size:.75em;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--chip)}
+.pill.me{background:var(--ok-bg);color:var(--ok)}
+.chlist{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.chlist li{display:flex;gap:10px;align-items:center;justify-content:space-between;border:2px solid var(--line);border-radius:12px;padding:8px 10px}
+.chlist li .t{display:flex;gap:10px;align-items:center;min-width:0}
+.chlist .box{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-weight:800;color:transparent}
+.chlist li.done .box{background:var(--ok);border-color:var(--ok);color:var(--accent-ink)}
+.chbtn{font:700 .85em var(--f-body);padding:8px 14px;border-radius:999px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:44px;white-space:nowrap}
+.chbtn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.steps3{display:flex;gap:6px;margin:4px 0 10px}
+.steps3 span{flex:1;text-align:center;font-size:.75em;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:4px;border-radius:8px;background:var(--chip);color:var(--muted)}
+.steps3 span.on{background:var(--accent);color:var(--accent-ink)}
+.steps3 span.ok{background:var(--ok-bg);color:var(--ok)}
+.chq{font-weight:700;font-size:1.05em;margin:6px 0 8px}
+.opts{display:grid;gap:6px}
+.opts button{font:inherit;text-align:left;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;min-height:48px}
+.opts button.wrong{border-color:var(--heat);opacity:.7}
+.msg{margin:8px 0;padding:8px 10px;border-radius:10px;background:var(--chip)}
+.msg.ok{background:var(--ok-bg);color:var(--ok);font-weight:700}
+.wait{display:flex;align-items:center;gap:8px;color:var(--muted);margin:8px 0}
+.wait i{width:12px;height:12px;border-radius:50%;background:var(--accent);display:inline-block}
+@media (prefers-reduced-motion:no-preference){.wait i{animation:pulse 1.2s ease-in-out infinite}@keyframes pulse{50%{opacity:.25}}}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chcard.flash{animation:flash 1.2s ease-out}@keyframes flash{0%,40%{border-color:var(--sun);box-shadow:0 0 0 4px var(--sun)}100%{box-shadow:none}}
+details.teacher{margin-top:16px}
+details.teacher summary{cursor:pointer;font-weight:700;padding:10px 0}
+details.teacher .card{max-width:74ch}
+footer{margin-top:18px;color:var(--muted);font-size:.8em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="brand">
+    <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"><path d="M23 4C16 15 10 22 10 29a13 13 0 0 0 26 0c0-7-6-14-13-25Z" fill="var(--water)"/><circle cx="18" cy="29" r="2.6" fill="var(--paper)"/><circle cx="25" cy="34" r="2.6" fill="var(--paper)"/><circle cx="28" cy="25" r="2.6" fill="var(--paper)"/></svg>
+    <div><h1>Laboratório da Água</h1><p>Mexa, observe e descubra como a água muda de estado</p></div>
+  </div>
+  <div class="a11y" role="group" aria-label="Acessibilidade">
+    <button id="bEasy" aria-pressed="false">Leitura fácil</button>
+    <button id="bSpeak">Ouvir</button>
+    <button id="bBig" aria-pressed="false">Letra grande</button>
+    <button id="bContrast" aria-pressed="false">Alto contraste</button>
+    <button id="bRestart" class="restart">Reiniciar laboratório</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="bancada" aria-selected="true">Bancada</button>
+  <button role="tab" data-tab="varal" aria-selected="false">Varal</button>
+  <button role="tab" data-tab="ciclo" aria-selected="false">Ciclo da água</button>
+  <button role="tab" data-tab="registro" aria-selected="false">Registro</button>
+</nav>
+
+<!-- BANCADA -->
+<section id="s-bancada">
+  <div class="stage">
+    <canvas id="cvB" width="800" height="440" role="img" aria-label="Béquer com partículas de água sobre um fogareiro"></canvas>
+    <canvas id="cvG" width="800" height="130" role="img" aria-label="Gráfico da temperatura ao longo do tempo"></canvas>
+    <div class="controls" role="group" aria-label="Controles da bancada">
+      <button class="ctl" data-heat="frio" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7" stroke="var(--cold)" stroke-width="2.4" stroke-linecap="round"/></svg>Resfriar</button>
+      <button class="ctl" data-heat="off" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="var(--muted)" stroke-width="2.4"/><path d="M7 17 17 7" stroke="var(--muted)" stroke-width="2.4"/></svg>Desligado</button>
+      <button class="ctl" data-heat="baixo" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 6c3 4 4 6 4 9a4 4 0 0 1-8 0c0-3 1-5 4-9Z" fill="var(--heat)"/></svg>Fogo baixo</button>
+      <button class="ctl" data-heat="alto" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 2c5 6 7 9 7 13a7 7 0 0 1-14 0c0-4 2-7 7-13Z" fill="var(--heat)"/></svg>Fogo alto</button>
+      <button class="ctl" id="bLid" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="4" rx="1" fill="var(--muted)"/><rect x="10" y="5" width="4" height="4" fill="var(--muted)"/></svg>Tampa</button>
+      <button class="ctl" id="bCold" aria-pressed="false" disabled><svg viewBox="0 0 24 24"><rect x="4" y="12" width="16" height="3" fill="var(--muted)"/><rect x="7" y="5" width="5" height="6" rx="1" fill="var(--ice)"/><rect x="13" y="6" width="5" height="5" rx="1" fill="var(--ice)"/></svg>Gelo na tampa</button>
+      <button class="ctl reset" id="bResetB">Recomeçar com gelo</button>
+      <button class="ctl" id="bResetW">Recomeçar com água</button>
+    </div>
+  </div>
+  <div class="below">
+    <div class="card" aria-live="polite">
+      <h2>O que está acontecendo <span class="phase" id="phaseB">sólido</span></h2>
+      <p class="explain" id="expB"></p>
+      <div class="small">Eu vi a água…</div>
+      <div class="saw" data-scene="Bancada">
+        <button>derreter</button><button>evaporar</button><button>ferver</button><button>condensar</button><button>congelar</button>
+      </div>
+    </div>
+    <div class="card chcard" aria-live="polite"><h2>Desafios</h2><div id="chB"></div></div>
+  </div>
+</section>
+
+<!-- VARAL -->
+<section id="s-varal" hidden>
+  <div class="stage">
+    <canvas id="cvV" width="800" height="420" role="img" aria-label="Varal com três roupas molhadas, uma árvore fazendo sombra e o sol"></canvas>
+    <div class="controls" role="group" aria-label="Controles do varal">
+      <div class="slider"><label for="sunV">Sol</label><input id="sunV" type="range" min="0" max="100" value="80"><span id="sunVv" class="small">forte</span></div>
+      <button class="ctl" id="bWind" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3" fill="none" stroke="var(--muted)" stroke-width="2.4" stroke-linecap="round"/></svg>Vento</button>
+      <button class="ctl reset" id="bResetV">Molhar as roupas de novo</button>
+    </div>
+  </div>
+  <div class="below">
+    <div class="card" aria-live="polite">
+      <h2>O que está acontecendo <span class="phase" id="phaseV">secando</span></h2>
+      <p class="explain" id="expV"></p>
+      <p class="small">Arraste as roupas entre o sol e a sombra. Toque numa roupa para esticar ou dobrar.</p>
+      <div class="saw" data-scene="Varal"><button>evaporar</button><button>secar no sol</button><button>secar na sombra</button></div>
+    </div>
+    <div class="card chcard" aria-live="polite"><h2>Desafios</h2><div id="chV"></div></div>
+  </div>
+</section>
+
+<!-- CICLO -->
+<section id="s-ciclo" hidden>
+  <div class="stage">
+    <canvas id="cvC" width="800" height="440" role="img" aria-label="Paisagem com mar, montanha, rio, sol e nuvem"></canvas>
+    <div class="controls" role="group" aria-label="Controles do ciclo">
+      <div class="slider"><label for="sunC">Sol</label><input id="sunC" type="range" min="0" max="100" value="70"></div>
+      <div class="slider"><label for="windC">Vento</label><input id="windC" type="range" min="0" max="100" value="0"></div>
+      <button class="ctl reset" id="bResetC">Recomeçar</button>
+    </div>
+  </div>
+  <div class="below">
+    <div class="card" aria-live="polite">
+      <h2>O que está acontecendo <span class="phase" id="phaseC">evaporação</span></h2>
+      <p class="explain" id="expC"></p>
+      <p class="small">Você também pode arrastar a nuvem com o dedo.</p>
+      <div class="saw" data-scene="Ciclo"><button>evaporar</button><button>formar nuvem</button><button>chover</button><button>voltar ao mar</button></div>
+    </div>
+    <div class="card chcard" aria-live="polite"><h2>Desafios</h2><div id="chC"></div></div>
+  </div>
+</section>
+
+<!-- REGISTRO -->
+<section id="s-registro" hidden>
+  <div class="card">
+    <h2>Registro do grupo <button class="ctl" id="bClear" style="min-height:40px">Limpar registro</button></h2>
+    <p class="small">O laboratório anota sozinho o que acontece. O que o grupo marca em “Eu vi” aparece em verde.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Quando</th><th>Onde</th><th>O que aconteceu</th><th>Temperatura</th></tr></thead>
+      <tbody id="logBody"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<details class="teacher">
+  <summary>Para o professor</summary>
+  <div class="card">
+    <p><b>Para que serve.</b> Recurso para os estudantes manusearem depois (ou ao lado) do experimento real com gelo, fogareiro e tampa. Os conceitos trabalhados são estados físicos, fusão, ebulição, evaporação, condensação, solidificação e ciclo da água.</p>
+    <p><b>O que observar com a turma.</b></p>
+    <ul>
+      <li>O termômetro fica parado em 0 °C enquanto há gelo e em 100 °C enquanto a água ferve: a energia está sendo usada para mudar de estado.</li>
+      <li>A água evapora abaixo de 100 °C (na bancada e no varal). Ferver é só uma forma rápida de evaporar.</li>
+      <li>No vapor, as partículas ficam muito afastadas; no gelo, presas em fileiras. O gelo boia porque suas partículas ficam mais afastadas do que na água líquida.</li>
+      <li>A tampa (mais fria que o vapor) provoca condensação; com gelo em cima, muito mais.</li>
+    </ul>
+    <p><b>Simplificações do modelo.</b> As partículas representam grupos de moléculas, não moléculas reais; os tempos estão acelerados; a pressão é a do nível do mar.</p>
+    <p><b>Desafios.</b> Cada desafio só começa quando o grupo toca em Começar e segue três passos: prever, fazer e explicar. O que acontece antes da previsão não conta, e o desafio só é marcado depois que o grupo escolhe a explicação correta. As previsões e conclusões ficam no Registro.</p>
+    <p><b>Acessibilidade.</b> Leitura fácil troca os textos por frases curtas; Ouvir lê a explicação em voz alta; Letra grande e Alto contraste ajustam a tela.</p>
+    <p><b>O que fica salvo.</b> O registro, os desafios concluídos e as escolhas de acessibilidade ficam guardados neste navegador, mesmo se a página for fechada. Nada é enviado para fora do aparelho. Entre um grupo e outro, use “Reiniciar laboratório” (dois toques) para apagar o registro e os desafios e recomeçar as três cenas; as escolhas de acessibilidade são mantidas.</p>
+  </div>
+</details>
+<footer>Recurso pedagógico criado com apoio de IA generativa e revisado para uso em sala · PROFEI/UNESPAR</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const rnd=(a,b)=>a+Math.random()*(b-a);
+
+/* ---------- cores a partir dos tokens ---------- */
+let C={};
+function readColors(){const cs=getComputedStyle(document.documentElement);["bg","paper","ink","muted","line","water","water-soft","ice","vapor","heat","cold","sun","leaf","earth","sky1","sky2","sea","cloud","cloud-dark","accent"].forEach(k=>C[k]=cs.getPropertyValue("--"+k).trim());}
+readColors();
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",readColors)}catch(e){}
+new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme","data-contrast"]});
+
+/* ---------- acessibilidade ---------- */
+let easy=store.get("lab_easy",false);
+function setPressed(b,v){b.setAttribute("aria-pressed",String(v))}
+function applyA11y(){
+  setPressed($("#bEasy"),easy);
+  const big=store.get("lab_big",false), hc=store.get("lab_hc",false);
+  setPressed($("#bBig"),big); setPressed($("#bContrast"),hc);
+  document.documentElement.dataset.big=big?"on":"off";
+  document.documentElement.dataset.contrast=hc?"on":"off";
+}
+applyA11y();
+$("#bEasy").onclick=()=>{easy=!easy;store.set("lab_easy",easy);applyA11y();lastExp={};};
+$("#bBig").onclick=()=>{store.set("lab_big",!store.get("lab_big",false));applyA11y();};
+$("#bContrast").onclick=()=>{store.set("lab_hc",!store.get("lab_hc",false));applyA11y();};
+function speak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="pt-BR";u.rate=.92;const v=speechSynthesis.getVoices().find(v=>/pt[-_]BR/i.test(v.lang));if(v)u.voice=v;speechSynthesis.speak(u);}catch(e){}}
+$("#bSpeak").onclick=()=>{const el=$("#exp"+{bancada:"B",varal:"V",ciclo:"C"}[tab]);speak(el?el.textContent:"Este é o registro do grupo.");};
+
+/* ---------- abas ---------- */
+const tabs=["bancada","varal","ciclo","registro"]; let tab="bancada";
+function show(t){if(!tabs.includes(t))t="bancada";tab=t;tabs.forEach(n=>$("#s-"+n).hidden=n!==t);$$("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===t)));try{history.replaceState(null,"","#"+t)}catch(e){}if(t==="registro")setTimeout(renderLog,0);}
+$$("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.tab));
+show((location.hash||"").slice(1));
+
+/* ---------- registro ---------- */
+let log=store.get("lab_log",[]);
+function stamp(){const d=new Date();return d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}
+function addLog(scene,what,temp,mine){log.unshift({t:stamp(),scene,what,temp:temp==null?"—":temp,mine:!!mine});if(log.length>200)log.length=200;store.set("lab_log",log);if(tab==="registro")renderLog();}
+function renderLog(){const tb=$("#logBody");tb.innerHTML="";if(!log.length){const tr=document.createElement("tr");tr.innerHTML='<td colspan="4" class="small">Nada registrado ainda. Use a Bancada, o Varal ou o Ciclo e o laboratório vai anotando.</td>';tb.append(tr);return;}
+  log.forEach(r=>{const tr=document.createElement("tr");tr.innerHTML=`<td class="who">${r.t}</td><td></td><td></td><td>${r.temp}</td>`;tr.children[1].textContent=r.scene;const w=document.createElement("span");w.textContent=r.what;if(r.mine){const p=document.createElement("span");p.className="pill me";p.textContent="o grupo viu";tr.children[2].append(p," ")}tr.children[2].append(w);tb.append(tr);});}
+$("#bClear").onclick=()=>{log=[];store.set("lab_log",log);renderLog();};
+$$(".saw").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{const sc=g.dataset.scene;const temp=sc==="Bancada"?Math.round(B.T)+" °C":null;addLog(sc,"Vimos a água "+b.textContent,temp,true);b.style.borderColor="var(--ok)";setTimeout(()=>b.style.borderColor="",600);}));
+
+/* ---------- desafios ---------- */
+
+/* ---------- canvas responsivo ---------- */
+function fit(cv){const W=cv.width,H=cv.height;const o={cv,ctx:cv.getContext("2d"),W,H,s:1};function rs(){const w=cv.clientWidth||W;const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(w*dpr);cv.height=Math.round(w*H/W*dpr);o.s=cv.width/W;}const ro=new ResizeObserver(rs);ro.observe(cv);rs();return o;}
+function begin(o){o.ctx.setTransform(o.s,0,0,o.s,0,0);o.ctx.clearRect(0,0,o.W,o.H);}
+function ptr(o,e){const r=o.cv.getBoundingClientRect();return{x:(e.clientX-r.left)*o.W/r.width,y:(e.clientY-r.top)*o.H/r.height};}
+
+let lastExp={};
+function setExp(id,phaseId,phase,normal,simple){const t=easy?simple:normal;if(lastExp[id]!==t){$(id).textContent=t;lastExp[id]=t;}const p=$(phaseId);if(p.textContent!==phase)p.textContent=phase;}
+
+/* =========================================================
+   BANCADA: béquer com partículas
+   ========================================================= */
+const gB=fit($("#cvB")), gG=fit($("#cvG"));
+const BK={x0:250,x1:550,top:150,bot:380}, R=7, SP=16, N=72;
+const B={};
+function resetB(){B.T=-10;B.heat="off";B.lid=false;B.coldLid=false;B.ps=[];B.acc={melt:0,evap:0,boil:0};B.left=0;B.hist=[];B.ht=0;B.time=0;B.flags={};B.lastCond=-9;B.lastFreeze=-9;B.lastMelt=-9;
+  for(let i=0;i<N;i++)B.ps.push({ph:"ice",x:0,y:0,vx:0,vy:0,k:i,t:0});
+  $$("[data-heat]").forEach(b=>setPressed(b,b.dataset.heat==="off"));setPressed($("#bLid"),false);setPressed($("#bCold"),false);$("#bCold").disabled=true;}
+resetB();
+function setupLiquid(T){resetB();B.T=T;B.ps.forEach(p=>{p.ph="liq";p.x=rnd(BK.x0+R,BK.x1-R);p.y=rnd(300,BK.bot-R);p.vx=rnd(-1,1);p.vy=rnd(-1,1);});}
+$$("[data-heat]").forEach(b=>b.onclick=()=>{B.heat=b.dataset.heat;$$("[data-heat]").forEach(x=>setPressed(x,x===b));});
+$("#bLid").onclick=()=>{B.lid=!B.lid;setPressed($("#bLid"),B.lid);$("#bCold").disabled=!B.lid;if(!B.lid){B.coldLid=false;setPressed($("#bCold"),false);}};
+$("#bCold").onclick=()=>{B.coldLid=!B.coldLid;setPressed($("#bCold"),B.coldLid);};
+$("#bResetB").onclick=()=>{resetB();addLog("Bancada","Recomeçamos com gelo a −10 °C","−10 °C");};
+$("#bResetW").onclick=()=>{setupLiquid(25);addLog("Bancada","Recomeçamos com água a 25 °C","25 °C");};
+
+const count=ph=>B.ps.reduce((n,p)=>n+(p.ph===ph),0);
+function flag(k,what){emit(k);if(B.flags[k])return;B.flags[k]=1;addLog("Bancada",what,Math.round(B.T)+" °C");}
+function power(){return {frio:-3.2,off:0.045*(25-B.T),baixo:1.6,alto:4.2}[B.heat];}
+function liquidTop(){const nl=count("liq");return BK.bot-Math.ceil(nl/17)*SP;}
+
+function stepB(dt){
+  B.time+=dt;
+  const P=power(); let nIce=count("ice"), nLiq=count("liq");
+  // temperatura e mudanças de estado (patamares)
+  if(P>0){
+    if(B.T<0||(B.T>=0&&nIce===0)||B.T>0){
+      let T2=B.T+P*dt;
+      if(B.T<0&&T2>=0&&nIce>0)T2=0;
+      if(B.T<100&&T2>=100&&nLiq>0)T2=100;
+      if(nIce>0&&B.T>=0)T2=0;
+      B.T=T2;
+    }
+    if(B.T===0&&nIce>0){B.acc.melt+=P*1.25*dt;while(B.acc.melt>=1&&nIce>0){meltOne();nIce--;nLiq++;B.acc.melt-=1;}B.lastMelt=B.time;flag("melt0","O gelo começou a derreter. Termômetro parado em 0 °C");}
+    if(B.T>=100&&nLiq>0){B.T=100;B.acc.boil+=P*0.85*dt;while(B.acc.boil>=1&&nLiq>0){toVapor(true);nLiq--;B.acc.boil-=1;}flag("boil","A água começou a ferver. Termômetro parado em 100 °C");}
+    if(B.T>100&&nLiq>0)B.T=100;
+  }else if(P<0){
+    let T2=B.T+P*dt;
+    if(B.T>0&&T2<=0&&nLiq>0)T2=0;
+    if(B.T===0&&nLiq>0)T2=0;
+    B.T=T2;
+    if(B.T===0&&nLiq>0){B.acc.melt+=(-P)*1.25*dt;while(B.acc.melt>=1&&nLiq>0){freezeOne();nLiq--;nIce++;B.acc.melt-=1;}B.lastFreeze=B.time;flag("frz","A água começou a congelar a 0 °C");}
+  }
+  B.T=Math.max(-25,Math.min(130,B.T));
+  if(nIce===0&&B.flags.melt0)flag("melted","Todo o gelo derreteu");
+  if(count("liq")===0&&B.flags.frz&&count("ice")>0)flag("frozenAll","Toda a água congelou");;
+  // evaporação abaixo de 100 °C
+  if(nLiq>0&&B.T>0&&B.T<100){B.acc.evap+=0.16*Math.exp((B.T-25)/19)*dt;while(B.acc.evap>=1&&nLiq>0){toVapor(false);nLiq--;B.acc.evap-=1;flag("evap","Uma partícula evaporou sem a água ferver");}}
+  // movimento
+  const lt=liquidTop(), iceRows=Math.ceil(nIce/12), iceH=iceRows*SP;
+  const iceBottom = nLiq>0 ? Math.min(BK.bot, lt + iceH*0.9) : BK.bot;
+  const iceTop=iceBottom-iceH, iceX0=(BK.x0+BK.x1)/2-6*SP;
+  let iceIdx=0;
+  const vibe=0.6+Math.max(0,(B.T+30))/30*1.4;
+  const lspeed=24+1.3*Math.max(0,Math.min(100,B.T)), vspeed=150+1.6*Math.max(0,B.T);
+  const ceiling=B.lid?BK.top+6:-40;
+  B.ps.forEach(p=>{
+    if(p.ph==="ice"){const c=iceIdx%12,r=Math.floor(iceIdx/12);iceIdx++;p.x=iceX0+c*SP+SP/2+rnd(-vibe,vibe);p.y=iceBottom-r*SP-SP/2+rnd(-vibe,vibe);}
+    else if(p.ph==="liq"){
+      const sp=Math.hypot(p.vx,p.vy)||1;p.vx=p.vx/sp*lspeed+rnd(-20,20)*dt*10;p.vy=p.vy/sp*lspeed+rnd(-20,20)*dt*10;
+      p.x+=p.vx*dt;p.y+=p.vy*dt;
+      if(p.x<BK.x0+R){p.x=BK.x0+R;p.vx=Math.abs(p.vx)}if(p.x>BK.x1-R){p.x=BK.x1-R;p.vx=-Math.abs(p.vx)}
+      if(p.y<lt+R){p.y=lt+R;p.vy=Math.abs(p.vy)}if(p.y>BK.bot-R){p.y=BK.bot-R;p.vy=-Math.abs(p.vy)}
+    }
+    else if(p.ph==="vap"){
+      const sp=Math.hypot(p.vx,p.vy)||1;p.vx=p.vx/sp*vspeed;p.vy=p.vy/sp*vspeed;
+      p.x+=p.vx*dt;p.y+=p.vy*dt;
+      const inside=p.y>BK.top;
+      if(inside||B.lid){if(p.x<BK.x0+R){p.x=BK.x0+R;p.vx=Math.abs(p.vx)}if(p.x>BK.x1-R){p.x=BK.x1-R;p.vx=-Math.abs(p.vx)}}
+      if(B.lid&&p.y<ceiling+R){
+        const pc=B.coldLid?0.9:(B.T<100||nLiq===0?0.12:0.25);
+        if(Math.random()<pc){p.ph="drop";p.y=ceiling+R+2;p.t=rnd(1.6,3.2);p.vy=0;B.lastCond=B.time;flag("cond","O vapor condensou na tampa e virou gota");}
+        else{p.y=ceiling+R;p.vy=Math.abs(p.vy);}
+      }
+      if(!B.lid&&p.y<-10){p.ph="gone";B.left++;if(!B.flags.gone)flag("gone","Vapor saiu do béquer e se espalhou no ar");}
+      const floor=(nLiq>0?lt:(nIce>0?iceTop:BK.bot))-R;
+      if(p.y>floor){p.y=floor;p.vy=-Math.abs(p.vy);if(nLiq>0&&B.T<100&&Math.random()<0.25){p.ph="liq";}}
+    }
+    else if(p.ph==="drop"){
+      p.t-=dt;if(p.t<=0){p.vy+=600*dt;p.y+=p.vy*dt;const floor=(nLiq>0?lt:BK.bot);if(p.y>=floor-R){p.ph=B.T<=0&&nLiq===0?"ice":"liq";p.vx=rnd(-1,1);p.vy=rnd(-1,1);flag("drip","Uma gota caiu da tampa como chuva");}}
+    }
+  });
+  // histórico do termômetro
+  B.ht+=dt;if(B.ht>=0.5){B.ht=0;B.hist.push(B.T);if(B.hist.length>240)B.hist.shift();}
+}
+function meltOne(){const p=B.ps.filter(p=>p.ph==="ice").pop();if(!p)return;p.ph="liq";p.vx=rnd(-1,1);p.vy=rnd(-1,1);}
+function freezeOne(){const l=B.ps.filter(p=>p.ph==="liq");if(!l.length)return;const p=l[Math.floor(Math.random()*l.length)];p.ph="ice";}
+function toVapor(boiling){const l=B.ps.filter(p=>p.ph==="liq");if(!l.length)return;let p;if(boiling)p=l[Math.floor(Math.random()*l.length)];else{l.sort((a,b)=>a.y-b.y);p=l[Math.floor(Math.random()*Math.min(4,l.length))];}p.ph="vap";p.vx=rnd(-0.6,0.6);p.vy=-1;p.y=liquidTop()-R-3;}
+
+function drawB(){
+  const o=gB, c=o.ctx; begin(o);
+  // mesa
+  c.fillStyle=C.line;c.fillRect(0,425,800,15);
+  // fogareiro
+  c.fillStyle=C.muted;c.fillRect(300,398,200,12);c.fillRect(320,410,20,15);c.fillRect(460,410,20,15);
+  if(B.heat==="baixo"||B.heat==="alto"){const h=B.heat==="alto"?26:14;c.fillStyle=C.heat;for(let i=0;i<7;i++){const x=320+i*27+rnd(-1,1);c.beginPath();c.moveTo(x-7,396);c.quadraticCurveTo(x,396-h-rnd(0,5),x+7,396);c.fill();}}
+  if(B.heat==="frio"){c.fillStyle=C.cold;c.font="700 15px "+getComputedStyle(document.body).fontFamily;c.textAlign="center";c.fillText("resfriando",400,395);}
+  // béquer
+  c.strokeStyle=C.ink;c.lineWidth=3;c.beginPath();c.moveTo(BK.x0-4,BK.top-10);c.lineTo(BK.x0-4,BK.bot+4);c.lineTo(BK.x1+4,BK.bot+4);c.lineTo(BK.x1+4,BK.top-10);c.stroke();
+  // água (fundo)
+  const nl=count("liq");if(nl>0){const lt=liquidTop();c.fillStyle=C["water-soft"];c.globalAlpha=.45;c.fillRect(BK.x0,lt,BK.x1-BK.x0,BK.bot-lt);c.globalAlpha=1;
+    if(B.T===100){c.strokeStyle=C.paper;c.lineWidth=2;for(let i=0;i<6;i++){const x=rnd(BK.x0+20,BK.x1-20),y=rnd(lt+10,BK.bot-10);c.beginPath();c.arc(x,y,rnd(4,9),0,7);c.stroke();}}}
+  // tampa
+  if(B.lid){c.fillStyle=B.coldLid?C.cold:C.muted;c.fillRect(BK.x0-14,BK.top-4,BK.x1-BK.x0+28,10);c.fillRect(390,BK.top-14,20,10);
+    if(B.coldLid){c.fillStyle=C.ice;for(let i=0;i<5;i++)c.fillRect(BK.x0+20+i*55,BK.top-24,26,20);}}
+  // partículas
+  B.ps.forEach(p=>{if(p.ph==="gone")return;
+    c.beginPath();
+    if(p.ph==="drop"){c.fillStyle=C.water;c.moveTo(p.x,p.y-R);c.quadraticCurveTo(p.x+R,p.y+R*.6,p.x,p.y+R);c.quadraticCurveTo(p.x-R,p.y+R*.6,p.x,p.y-R);c.fill();return;}
+    c.fillStyle=p.ph==="ice"?C.ice:p.ph==="liq"?C.water:C.vapor;c.arc(p.x,p.y,R,0,7);c.fill();
+    if(p.ph==="ice"){c.strokeStyle=C.ink;c.globalAlpha=.25;c.lineWidth=1;c.stroke();c.globalAlpha=1;}
+  });
+  // termômetro
+  const tx=640,ty0=140,ty1=380;c.fillStyle=C.paper;c.strokeStyle=C.ink;c.lineWidth=2;c.beginPath();c.roundRect(tx,ty0,22,ty1-ty0,11);c.fill();c.stroke();
+  const ty=v=>ty1-12-(v+25)/(130+25)*(ty1-ty0-24);
+  c.fillStyle=B.T>50?C.heat:C.cold;c.fillRect(tx+6,ty(B.T),10,ty1-ty(B.T)-4);c.beginPath();c.arc(tx+11,ty1+6,13,0,7);c.fill();c.stroke();
+  c.fillStyle=C.ink;c.font="700 13px Verdana,sans-serif";c.textAlign="left";[0,100].forEach(v=>{c.fillRect(tx+24,ty(v),10,2);c.fillText(v+" °C",tx+38,ty(v)+5);});
+  c.font="800 34px "+"'Baloo 2',Verdana,sans-serif";c.fillText(Math.round(B.T)+" °C",tx-10,120);
+  // legenda
+  c.font="13px Verdana,sans-serif";c.textAlign="left";
+  [["ice","gelo (sólido)"],["water","água (líquido)"],["vapor","vapor (gás)"]].forEach(([k,t],i)=>{c.fillStyle=C[k];c.beginPath();c.arc(30,40+i*24,7,0,7);c.fill();c.fillStyle=C.ink;c.fillText(t,44,45+i*24);});
+  if(B.left>0){c.fillStyle=C.muted;c.fillText(B.left+" partícula"+(B.left>1?"s":"")+" de vapor",30,130);c.fillText("foram para o ar",30,148);}
+  if(count("liq")+count("ice")+count("vap")+count("drop")===0){c.fillStyle=C.ink;c.textAlign="center";c.font="700 18px Verdana,sans-serif";c.fillText("Toda a água virou vapor e foi para o ar",400,104);c.font="14px Verdana,sans-serif";c.fillText("Toque em “Recomeçar com água” ou “Recomeçar com gelo”",400,128);}
+  // gráfico
+  const g=gG,gc=g.ctx;begin(g);
+  const L=70,Rr=780,T0=12,B0=105;gc.strokeStyle=C.line;gc.lineWidth=1;gc.fillStyle=C.muted;gc.font="12px Verdana,sans-serif";gc.textAlign="right";
+  const gy=v=>B0-(v+25)/155*(B0-T0);
+  [-20,0,50,100].forEach(v=>{gc.beginPath();gc.moveTo(L,gy(v));gc.lineTo(Rr,gy(v));gc.stroke();gc.fillText(v+" °C",L-6,gy(v)+4);});
+  gc.textAlign="left";gc.fillText("temperatura nos últimos 2 minutos",L,126);
+  if(B.hist.length>1){gc.strokeStyle=C.heat;gc.lineWidth=3;gc.beginPath();B.hist.forEach((v,i)=>{const x=L+(i/239)*(Rr-L);i?gc.lineTo(x,gy(v)):gc.moveTo(x,gy(v));});gc.stroke();
+    const x=L+((B.hist.length-1)/239)*(Rr-L);gc.fillStyle=C.heat;gc.beginPath();gc.arc(x,gy(B.hist[B.hist.length-1]),5,0,7);gc.fill();}
+}
+function explainB(){
+  const nI=count("ice"),nL=count("liq"),nV=count("vap"),nD=count("drop");
+  const melting=B.time-B.lastMelt<0.6&&nI>0, freezing=B.time-B.lastFreeze<0.6, cond=B.time-B.lastCond<3||nD>0;
+  if(nI+nL+nV+nD===0)return setExp("#expB","#phaseB","gasoso","Toda a água virou vapor e se espalhou pelo ar. Ela não sumiu: as partículas estão no ambiente, afastadas demais para serem vistas.","A água virou vapor. Foi para o ar. Ela não sumiu.");
+  if(freezing)return setExp("#expB","#phaseB","solidificação","A água está congelando (solidificação). Ao perder energia, as partículas param de escorregar e se prendem em fileiras. O termômetro fica parado em 0 °C até tudo virar gelo.","A água está virando gelo. As bolinhas ficam presas. O termômetro para no zero.");
+  if(melting)return setExp("#expB","#phaseB","fusão","O gelo está derretendo (fusão). A energia solta as partículas das fileiras. Repare: o termômetro fica parado em 0 °C enquanto ainda há gelo. "+(nL>0?"O gelo boia porque, nele, as partículas ficam mais afastadas do que na água.":""),"O gelo está virando água. O termômetro fica parado no zero."+(nL>0?" O gelo boia na água.":""));
+  if(B.T===100&&nL>0&&power()>0)return setExp("#expB","#phaseB","ebulição","A água está fervendo (ebulição). Formam-se bolhas de vapor dentro do líquido e muitas partículas escapam. O termômetro fica parado em 100 °C enquanto ainda há água.","A água está fervendo. Tem bolhas. O termômetro para no 100.");
+  if(cond&&B.lid)return setExp("#expB","#phaseB","condensação","O vapor encostou na tampa, que é mais fria, perdeu energia e voltou a ser água líquida (condensação). As gotas crescem e caem, como a chuva.","O vapor bateu na tampa fria. Virou gotinha. A gotinha cai, como chuva.");
+  if(nI>0&&nL===0)return setExp("#expB","#phaseB","sólido","Gelo (estado sólido). As partículas ficam presas em fileiras e só vibram no lugar. Quanto mais frio, menos vibram. Experimente aquecer.","É gelo. As bolinhas estão presas. Elas só tremem.");
+  if(nL>0)return setExp("#expB","#phaseB","líquido","Água líquida. As partículas ficam juntas, mas se movem e escorregam umas pelas outras. Quanto mais quente, mais rápido. Algumas da superfície escapam para o ar mesmo sem ferver: isso é evaporação.","É água. As bolinhas andam juntas. Algumas fogem para o ar. Isso é evaporar.");
+  return setExp("#expB","#phaseB","gasoso","Só há vapor. As partículas ficam muito afastadas e se movem depressa em todas as direções.","É vapor. As bolinhas ficam longe umas das outras.");
+}
+
+/* =========================================================
+   VARAL
+   ========================================================= */
+const gV=fit($("#cvV"));
+const V={};
+const SHADE_X=300;
+function resetV(){V.wind=false;V.t=0;V.cl=[{x:200,w:100,fold:false,c:"heat",name:"camiseta vermelha",dry:false},{x:450,w:100,fold:false,c:"water",name:"camiseta azul",dry:false},{x:640,w:100,fold:true,c:"leaf",name:"camiseta verde",dry:false}];V.cl.forEach(c=>c.wet=100);V.vap=[];V.drag=null;setPressed($("#bWind"),false);}
+resetV();
+$("#bWind").onclick=()=>{V.wind=!V.wind;setPressed($("#bWind"),V.wind);if(V.wind&&active)active.windUsed=true;};
+$("#bResetV").onclick=()=>{resetV();addLog("Varal","Molhamos as roupas de novo",null);};
+const sunV=()=>Number($("#sunV").value)/100;
+$("#sunV").oninput=()=>{const s=sunV();$("#sunVv").textContent=s<.15?"nublado":s<.55?"fraco":"forte";};
+function clothRect(cl){const w=cl.fold?cl.w*0.5:cl.w;return{x:cl.x-w/2,y:150,w,h:cl.fold?70:110};}
+function inShade(cl){return cl.x<SHADE_X;}
+gV.cv.addEventListener("pointerdown",e=>{const p=ptr(gV,e);for(const cl of V.cl){const r=clothRect(cl);if(p.x>=r.x-10&&p.x<=r.x+r.w+10&&p.y>=r.y-20&&p.y<=r.y+r.h+10){V.drag={cl,dx:p.x-cl.x,moved:false,x0:p.x};gV.cv.setPointerCapture(e.pointerId);return;}}});
+gV.cv.addEventListener("pointermove",e=>{if(!V.drag)return;const p=ptr(gV,e);if(Math.abs(p.x-V.drag.x0)>6)V.drag.moved=true;V.drag.cl.x=Math.max(70,Math.min(740,p.x-V.drag.dx));});
+gV.cv.addEventListener("pointerup",()=>{if(!V.drag)return;const cl=V.drag.cl;if(!V.drag.moved){cl.fold=!cl.fold;}V.drag=null;});
+function stepV(dt){
+  V.t+=dt;const s=sunV(),air=Math.round(20+12*s);
+  V.cl.forEach(cl=>{if(cl.wet<=0)return;
+    let rate=inShade(cl)?(0.7+0.7*s):(0.7+2.6*s);if(cl.fold)rate*=0.35;if(V.wind)rate*=1.8;rate*=1.35;
+    cl.wet=Math.max(0,cl.wet-rate*dt);
+    if(Math.random()<rate*dt*1.4){const r=clothRect(cl);V.vap.push({x:rnd(r.x,r.x+r.w),y:r.y+rnd(0,r.h),a:1});}
+    if(cl.wet===0&&!cl.dry){cl.dry=true;addLog("Varal",`A ${cl.name} secou em ${Math.round(V.t)} s (${inShade(cl)?"na sombra":"no sol"}, ${cl.fold?"dobrada":"esticada"})`,air+" °C");emit("dried",{name:cl.name,shade:inShade(cl),fold:cl.fold,t:V.t});}
+  });
+  V.vap.forEach(v=>{v.y-=40*dt;v.x+=(V.wind?60:rnd(-8,8))*dt;v.a-=0.35*dt;});V.vap=V.vap.filter(v=>v.a>0&&v.y>0);
+}
+function drawV(){
+  const o=gV,c=o.ctx;begin(o);const s=sunV();
+  const sky=c.createLinearGradient(0,0,0,420);sky.addColorStop(0,C.sky1);sky.addColorStop(1,C.sky2);c.fillStyle=sky;c.fillRect(0,0,800,420);
+  // sol
+  c.globalAlpha=0.25+0.75*s;c.fillStyle=C.sun;c.beginPath();c.arc(700,60,28+14*s,0,7);c.fill();c.globalAlpha=1;
+  // chão
+  c.fillStyle=C.leaf;c.globalAlpha=.5;c.fillRect(0,360,800,60);c.globalAlpha=1;
+  // árvore e sombra
+  c.fillStyle=C.earth;c.fillRect(120,200,24,165);c.fillStyle=C.leaf;c.beginPath();c.arc(132,170,90,0,7);c.fill();
+  c.fillStyle=C.ink;c.globalAlpha=.12;c.fillRect(0,40,SHADE_X,330);c.globalAlpha=1;
+  c.fillStyle=C.ink;c.font="700 15px Verdana,sans-serif";c.textAlign="left";c.fillText("SOMBRA",16,395);c.textAlign="right";c.fillText("SOL",784,395);
+  // varal
+  c.strokeStyle=C.muted;c.lineWidth=3;c.beginPath();c.moveTo(40,140);c.lineTo(780,140);c.stroke();c.fillStyle=C.muted;c.fillRect(36,140,6,225);c.fillRect(776,140,6,225);
+  // roupas
+  V.cl.forEach(cl=>{const r=clothRect(cl);c.fillStyle=C[cl.c];c.globalAlpha=0.55+0.45*(cl.wet/100);c.fillRect(r.x,r.y,r.w,r.h);c.globalAlpha=1;
+    c.fillStyle=C.ink;c.fillRect(r.x+8,r.y-8,6,14);c.fillRect(r.x+r.w-14,r.y-8,6,14);
+    // gotas
+    if(cl.wet>40){c.fillStyle=C.water;const n=Math.ceil(cl.wet/30);for(let i=0;i<n;i++){const x=r.x+10+((i*37)%Math.max(10,r.w-20)),y=r.y+r.h+6+((V.t*60+i*23)%40);c.beginPath();c.arc(x,y,3,0,7);c.fill();}}
+    // barra de umidade
+    c.fillStyle=C.paper;c.fillRect(r.x,r.y+r.h+52,r.w,10);c.fillStyle=C.water;c.fillRect(r.x,r.y+r.h+52,r.w*cl.wet/100,10);c.strokeStyle=C.ink;c.lineWidth=1;c.strokeRect(r.x,r.y+r.h+52,r.w,10);
+    c.fillStyle=C.ink;c.font="700 13px Verdana,sans-serif";c.textAlign="center";c.fillText(cl.wet>0?Math.round(cl.wet)+"% molhada":"seca!",cl.x,r.y+r.h+78);
+  });
+  V.vap.forEach(v=>{c.globalAlpha=Math.max(0,v.a)*.8;c.fillStyle=C.vapor;c.beginPath();c.arc(v.x,v.y,4,0,7);c.fill();});c.globalAlpha=1;
+  c.fillStyle=C.ink;c.font="13px Verdana,sans-serif";c.textAlign="left";c.fillText("ar: "+Math.round(20+12*s)+" °C",330,30);c.fillStyle=C.muted;c.fillText("bolinhas cinza = vapor (na vida real, invisível)",330,50);
+  if(V.wind){c.strokeStyle=C.muted;c.lineWidth=2;for(let i=0;i<4;i++){const y=60+i*22,x=((V.t*120+i*90)%700)+40;c.beginPath();c.moveTo(x,y);c.lineTo(x+40,y);c.stroke();}}
+}
+function explainV(){
+  const s=sunV(),air=Math.round(20+12*s);const all=V.cl.every(c=>c.wet<=0);
+  if(all)return setExp("#expV","#phaseV","secas","Todas secaram. A água das roupas evaporou a cerca de "+air+" °C, longe dos 100 °C da fervura. Ela foi para o ar como vapor. Compare no Registro quanto tempo cada uma levou.","Todas secaram. A água foi para o ar. Não precisou ferver.");
+  const extra=(V.wind?" O vento leva o vapor embora e acelera a secagem.":"")+" Roupa dobrada seca mais devagar: tem menos área exposta ao ar.";
+  setExp("#expV","#phaseV","evaporação","A água das roupas está evaporando sem ferver: o ar está a "+air+" °C. No sol, as partículas de água recebem mais energia e escapam mais depressa."+extra,"A água está saindo das roupas. Ela vira vapor. No sol é mais rápido."+(V.wind?" O vento ajuda.":""));
+}
+
+/* =========================================================
+   CICLO DA ÁGUA
+   ========================================================= */
+const gC=fit($("#cvC"));
+const Cy={};
+const SEA_X=330, SEA_Y=350, COND_Y=120;
+const mountainY=x=> x<SEA_X?SEA_Y: x<640? SEA_Y-(x-SEA_X)/(640-SEA_X)*190 : Math.min(SEA_Y,160+(x-640)*1.2);
+const riverPath=[[650,175],[600,230],[560,250],[500,290],[440,320],[380,340],[320,352]];
+function resetC(){Cy.vap=[];Cy.rain=[];Cy.run=[];Cy.cloud={x:180,y:95,w:0};Cy.flags={};Cy.drag=null;Cy.lastRain=-9;Cy.lastRun=-9;Cy.t=0;}
+resetC();
+$("#bResetC").onclick=()=>{resetC();addLog("Ciclo","Recomeçamos o ciclo",null);};
+function flagC(k,w){emit(k);if(Cy.flags[k])return;Cy.flags[k]=1;addLog("Ciclo",w,null);}
+gC.cv.addEventListener("pointerdown",e=>{const p=ptr(gC,e);const cl=Cy.cloud;const rw=40+cl.w*1.6;if(Math.abs(p.x-cl.x)<rw&&Math.abs(p.y-cl.y)<50){Cy.drag={dx:p.x-cl.x};gC.cv.setPointerCapture(e.pointerId);}});
+gC.cv.addEventListener("pointermove",e=>{if(!Cy.drag)return;const p=ptr(gC,e);Cy.cloud.x=Math.max(60,Math.min(750,p.x-Cy.drag.dx));});
+gC.cv.addEventListener("pointerup",()=>{Cy.drag=null;});
+function stepC(dt){
+  Cy.t+=dt;const sun=Number($("#sunC").value)/100, wind=Number($("#windC").value)/100;const cl=Cy.cloud;
+  if(Math.random()<sun*7*dt)Cy.vap.push({x:rnd(20,SEA_X-10),y:SEA_Y-4});
+  Cy.vap.forEach(v=>{v.y-=(35+25*sun)*dt;v.x+=(wind*40+rnd(-10,10))*dt;});
+  Cy.vap=Cy.vap.filter(v=>{if(v.y<COND_Y){cl.w=Math.min(70,cl.w+1);if(cl.w>=6)flagC("cloud","O vapor subiu, esfriou e formou uma nuvem");if(Math.abs(v.x-cl.x)>120&&cl.w<3)cl.x=v.x;return false;}return v.x<800;});
+  if(!Cy.drag)cl.x=Math.min(750,cl.x+wind*30*dt);
+  const overM=cl.x>520&&cl.x<760;
+  const raining=cl.w>0&&(cl.w>=55||(overM&&cl.w>=10));
+  if(raining){Cy.lastRain=Cy.t;if(Math.random()<14*dt){const rw=30+cl.w*1.2;Cy.rain.push({x:cl.x+rnd(-rw*.6,rw*.6),y:cl.y+20});}if(Math.random()<2.2*dt)cl.w=Math.max(0,cl.w-1);
+    flagC(overM?"rainM":"rainS",overM?"Choveu na montanha: no alto, o ar é mais frio":"Choveu sobre o mar");}
+  Cy.rain.forEach(r=>{r.y+=260*dt;});
+  Cy.rain=Cy.rain.filter(r=>{const gy=mountainY(r.x);if(r.y>=gy){if(r.x>SEA_X+10){let bi=0,bd=1e9;riverPath.forEach((q,k)=>{const d=Math.hypot(q[0]-r.x,q[1]-gy);if(d<bd){bd=d;bi=k;}});Cy.run.push({i:bi,f:0,x:r.x,y:gy,join:false});}return false;}return true;});
+  Cy.run.forEach(p=>{if(!p.join){const t=riverPath[p.i];const dx=t[0]-p.x,dy=t[1]-p.y,d=Math.hypot(dx,dy);if(d<8)p.join=true;else{p.x+=dx/d*90*dt;p.y+=dy/d*90*dt;}}else{p.f+=dt*1.3;while(p.f>=1&&p.i<riverPath.length-1){p.f-=1;p.i++;}const a=riverPath[p.i],b=riverPath[Math.min(p.i+1,riverPath.length-1)];p.x=a[0]+(b[0]-a[0])*p.f;p.y=a[1]+(b[1]-a[1])*p.f;}Cy.lastRun=Cy.t;});
+  Cy.run=Cy.run.filter(p=>{if(p.i>=riverPath.length-1){flagC("river","A água da chuva desceu pelo rio e voltou ao mar");return false;}return true;});
+}
+function drawC(){
+  const o=gC,c=o.ctx;begin(o);const sun=Number($("#sunC").value)/100;const cl=Cy.cloud;
+  const sky=c.createLinearGradient(0,0,0,440);sky.addColorStop(0,C.sky1);sky.addColorStop(1,C.sky2);c.fillStyle=sky;c.fillRect(0,0,800,440);
+  // escala de altitude
+  c.fillStyle=C.muted;c.font="12px Verdana,sans-serif";c.textAlign="left";c.fillText("mais alto,",12,40);c.fillText("mais frio",12,56);c.strokeStyle=C.muted;c.lineWidth=2;c.beginPath();c.moveTo(30,300);c.lineTo(30,70);c.lineTo(24,80);c.moveTo(30,70);c.lineTo(36,80);c.stroke();
+  c.setLineDash([6,6]);c.strokeStyle=C.line;c.beginPath();c.moveTo(50,COND_Y);c.lineTo(800,COND_Y);c.stroke();c.setLineDash([]);
+  // sol
+  c.globalAlpha=.25+.75*sun;c.fillStyle=C.sun;c.beginPath();c.arc(110,60,22+16*sun,0,7);c.fill();c.globalAlpha=1;
+  // terra e montanha
+  c.fillStyle=C.earth;c.beginPath();c.moveTo(SEA_X,440);for(let x=SEA_X;x<=800;x+=10)c.lineTo(x,mountainY(x));c.lineTo(800,440);c.fill();
+  c.fillStyle=C.leaf;c.globalAlpha=.55;c.beginPath();c.moveTo(SEA_X,440);for(let x=SEA_X;x<=800;x+=10)c.lineTo(x,mountainY(x)+6);c.lineTo(800,440);c.fill();c.globalAlpha=1;
+  // mar
+  c.fillStyle=C.sea;c.fillRect(0,SEA_Y,SEA_X+8,90);
+  // rio
+  c.strokeStyle=C.water;c.lineWidth=5;c.lineCap="round";c.beginPath();riverPath.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();
+  // vapor
+  Cy.vap.forEach(v=>{c.globalAlpha=.75;c.fillStyle=C.vapor;c.beginPath();c.arc(v.x,v.y,3.5,0,7);c.fill();});c.globalAlpha=1;
+  // nuvem
+  if(cl.w>0){const k=0.5+cl.w/70;const heavy=cl.w>=40;c.fillStyle=heavy?C["cloud-dark"]:C.cloud;c.strokeStyle=C.line;c.lineWidth=2;c.beginPath();[[-40,6,26],[-12,-10,34],[22,-4,30],[48,8,22],[0,12,30]].forEach(([dx,dy,r])=>{c.moveTo(cl.x+dx*k+r*k,cl.y+dy*k);c.arc(cl.x+dx*k,cl.y+dy*k,r*k,0,7);});c.fill();}
+  // chuva
+  c.strokeStyle=C.water;c.lineWidth=2.5;Cy.rain.forEach(r=>{c.beginPath();c.moveTo(r.x,r.y);c.lineTo(r.x-2,r.y+9);c.stroke();});
+  // escoamento
+  c.fillStyle=C.water;Cy.run.forEach(p=>{c.beginPath();c.arc(p.x,p.y,4,0,7);c.fill();});
+  // rótulos dos processos
+  c.font="700 14px Verdana,sans-serif";c.textAlign="center";c.fillStyle=C.ink;
+  if(sun>0.05)c.fillText("evaporação",170,SEA_Y-24);
+  if(cl.w>0)c.fillText("condensação",cl.x,cl.y-46);
+  if(Cy.t-Cy.lastRain<1)c.fillText("precipitação",Math.min(720,cl.x+90),cl.y+70);
+  if(Cy.t-Cy.lastRun<1.5)c.fillText("escoamento",500,330);
+}
+function explainC(){
+  const sun=Number($("#sunC").value)/100;const cl=Cy.cloud;
+  if(Cy.t-Cy.lastRain<1)return setExp("#expC","#phaseC","precipitação","A nuvem juntou tantas gotinhas que elas ficaram pesadas e caíram: é a chuva (precipitação). Sobre a montanha chove mais fácil, porque lá em cima o ar é mais frio.","A nuvem ficou pesada. Caiu chuva. Na montanha chove mais.");
+  if(Cy.t-Cy.lastRun<1.5)return setExp("#expC","#phaseC","escoamento","A água da chuva desce pela montanha, forma o rio e volta para o mar. Daí ela pode evaporar de novo: o ciclo recomeça.","A água desce pelo rio. Volta para o mar. Tudo começa de novo.");
+  if(cl.w>0)return setExp("#expC","#phaseC","condensação","O vapor subiu, encontrou o ar frio lá no alto e condensou em gotinhas muito pequenas. Juntas, elas formam a nuvem. Use o vento ou arraste a nuvem até a montanha.","O vapor subiu. Lá em cima é frio. Virou nuvem.");
+  if(sun<0.05)return setExp("#expC","#phaseC","parado","Sem sol, a água do mar quase não evapora. Aumente o sol para ver o que acontece.","Sem sol, quase nada acontece. Aumente o sol.");
+  setExp("#expC","#phaseC","evaporação","O sol aquece o mar e partículas de água escapam como vapor, sem a água ferver. O vapor é invisível; aqui ele aparece como bolinhas cinza subindo.","O sol esquenta o mar. A água vira vapor. O vapor sobe.");
+}
+
+
+/* ---------- desafios intencionais: prever, fazer, explicar ---------- */
+const CH={
+ B:[
+  {k:"melt",t:"Derreta todo o gelo e observe o termômetro.",setup:()=>resetB(),
+   p:["Enquanto o gelo derrete, o termômetro vai…",["subir sem parar","ficar parado","descer"],1],
+   ev:"melted",act:"Ligue o fogo e acompanhe o termômetro até não sobrar nenhum gelo.",
+   q:["Por que o termômetro ficou parado em 0 °C?",["A energia foi usada para soltar as partículas do gelo","O fogo ficou mais fraco","O termômetro travou"],0],
+   hint:"Olhe o que acontecia com as bolinhas de gelo enquanto o número não mudava."},
+  {k:"evap",t:"Faça uma partícula escapar para o ar sem ferver a água.",setup:()=>setupLiquid(25),
+   p:["A água consegue virar vapor sem ferver?",["Sim","Não, só a 100 °C"],0],
+   ev:"evap",act:"Deixe o fogo desligado ou baixo e observe a superfície da água com atenção.",
+   q:["De onde saiu a partícula que evaporou?",["Da superfície da água","Do fundo do béquer","Do fogo"],0],
+   hint:"Repare em que parte da água a bolinha estava antes de subir."},
+  {k:"boil",t:"Faça a água ferver.",setup:()=>setupLiquid(25),
+   p:["Quando a água começar a ferver, o termômetro vai…",["continuar subindo","parar em 100 °C","descer"],1],
+   ev:"boil",act:"Escolha o fogo e espere a água ferver. Observe o termômetro e o gráfico.",
+   q:["O que existe dentro das bolhas da água fervendo?",["Vapor de água","Ar","Nada, estão vazias"],0],
+   hint:"As bolhas se formam quando partículas de água viram gás dentro do líquido."},
+  {k:"drop",t:"Faça gotas se formarem na tampa e caírem.",setup:()=>setupLiquid(60),
+   p:["Para formar mais gotas na tampa, a tampa deve estar…",["quente","fria"],1],
+   ev:"drip",act:"Monte o experimento como quiser: fogo, tampa, gelo na tampa. Faça uma gota pingar.",
+   q:["Por que o vapor vira gota na tampa?",["Ele perde energia ao encostar numa superfície mais fria","A tampa solta água","O fogo empurra a água para cima"],0],
+   hint:"Compare a temperatura do vapor com a da tampa."},
+  {k:"freeze",t:"Transforme a água líquida em gelo.",setup:()=>setupLiquid(20),
+   p:["Para a água congelar, a temperatura precisa chegar a…",["0 °C","50 °C","100 °C"],0],
+   ev:"frozenAll",act:"Use os controles até toda a água virar gelo.",
+   q:["O que acontece com as partículas quando a água congela?",["Ficam presas em fileiras e só vibram","Ficam mais rápidas","Desaparecem"],0],
+   hint:"Compare como as bolinhas se mexiam antes e depois."}
+ ],
+ V:[
+  {k:"bet",t:"Aposte qual roupa seca primeiro.",setup:()=>resetV(),
+   p:["Qual roupa vai secar primeiro?",["vermelha (sombra, esticada)","azul (sol, esticada)","verde (sol, dobrada)"],null],
+   act:"Não mexa nas roupas. Observe e espere a primeira secar.",
+   ck:(k,d,a)=>{if(k!=="dried")return false;a.res="Secou primeiro a "+d.name+". "+(["camiseta vermelha","camiseta azul","camiseta verde"][a.pred]===d.name?"Você acertou a aposta!":"Sua aposta foi outra; vale pensar por quê.");return true;},
+   q:["O que mais ajudou essa roupa a secar primeiro?",["Sol e roupa esticada","Ficar na sombra","Ficar dobrada"],0],
+   hint:"Compare onde estava e como estava cada roupa."},
+  {k:"wind",t:"Seque a roupa da sombra em menos de 45 segundos, sem tirá-la da sombra.",setup:()=>resetV(),
+   p:["O vento faz a roupa secar…",["mais rápido","mais devagar","igual"],0],
+   act:"Deixe a camiseta vermelha na sombra e descubra o que acelera a secagem.",
+   ck:(k,d,a)=>{if(k!=="dried"||!d.shade)return false;if(a.windUsed&&d.t<45){a.res="Secou em "+Math.round(d.t)+" s.";return true;}a.fail="A roupa da sombra secou em "+Math.round(d.t)+" s. Recomece o desafio e experimente outro jeito.";return false;},
+   q:["Por que o vento ajuda a secar?",["Leva o vapor para longe da roupa","Esfria a água","Empurra as gotas para o chão"],0],
+   hint:"Pense no que acontece com o vapor que sai da roupa."},
+  {k:"fold",t:"Compare, no sol, a roupa esticada com a dobrada.",setup:()=>resetV(),
+   p:["Qual vai secar primeiro?",["a esticada","a dobrada","as duas juntas"],0],
+   act:"Deixe a azul esticada e a verde dobrada no sol. Espere as duas secarem.",
+   ck:(k,d,a)=>{if(k!=="dried"||d.shade)return false;if(!d.fold){a.st=d.t;return false;}a.res=(a.st?"A esticada secou em "+Math.round(a.st)+" s; a dobrada, em "+Math.round(d.t)+" s.":"A dobrada secou em "+Math.round(d.t)+" s.");return true;},
+   q:["Por que a roupa esticada seca antes?",["Tem mais área em contato com o ar","É mais leve","Está mais perto do sol"],0],
+   hint:"Pense em quanta parte da roupa fica exposta ao ar."}
+ ],
+ C:[
+  {k:"cloud",t:"Forme uma nuvem.",setup:()=>{resetC();$("#sunC").value=0;$("#windC").value=0;},
+   p:["O que precisa acontecer para formar uma nuvem?",["O sol aquecer a água do mar","Ventar muito","Chover antes"],0],
+   ev:"cloud",act:"O sol está apagado. Use os controles para formar uma nuvem.",
+   q:["Por que o vapor vira nuvem lá em cima?",["Lá no alto é mais frio e ele condensa","Ele fica pesado","O sol o empurra"],0],
+   hint:"Veja a seta: quanto mais alto, mais frio."},
+  {k:"rainM",t:"Faça chover na montanha.",setup:()=>{resetC();$("#sunC").value=70;$("#windC").value=0;},
+   p:["Como a nuvem pode chegar à montanha?",["Com o vento ou arrastando","Diminuindo o sol","Só esperando"],0],
+   ev:"rainM",act:"Forme a nuvem e leve a chuva até a montanha.",
+   q:["Por que chove com mais facilidade na montanha?",["O ar sobe, esfria e o vapor condensa mais","A montanha puxa a água","Lá tem mais sol"],0],
+   hint:"Lembre da seta: mais alto, mais frio."},
+  {k:"river",t:"Faça a água da chuva voltar para o mar.",setup:()=>{resetC();$("#sunC").value=70;$("#windC").value=0;},
+   p:["Por onde a água da chuva volta ao mar?",["Pelo rio","Pelo ar","Ela não volta"],0],
+   ev:"river",act:"Faça chover na terra e acompanhe a água.",
+   q:["Depois de voltar ao mar, o que pode acontecer com essa água?",["Evaporar de novo","Sumir","Virar gelo"],0],
+   hint:"O nome é ciclo porque…"}
+ ]
+};
+const SCN={B:"Bancada",V:"Varal",C:"Ciclo"};
+let active=null, lastDone={};const doneMem=Object.assign({},store.get("lab_ch",{}));
+function emit(k,d){if(!active||active.stage!=="do")return;const ch=active.ch;const ok=ch.ck?ch.ck(k,d||{},active):k===ch.ev;if(ok){active.stage="explain";active.wrong=[];renderCh(active.sc);}else if(active.fail){renderCh(active.sc);}}
+function startCh(sc,ch){active={sc,ch,stage:"predict",pred:null,wrong:[]};ch.setup();Object.keys(SCN).forEach(renderCh);}
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function renderCh(sc){
+  const box=$("#ch"+sc);box.innerHTML="";const done=doneMem;
+  if(active&&active.sc===sc){
+    const a=active,ch=a.ch;
+    box.append(el("p","chq",ch.t));
+    const st=el("div","steps3");[["predict","1 Prever"],["do","2 Fazer"],["explain","3 Explicar"]].forEach(([k,t],i)=>{const sp=el("span",null,t);const order=["predict","do","explain"];if(k===a.stage)sp.className="on";else if(order.indexOf(k)<order.indexOf(a.stage))sp.className="ok";st.append(sp);});box.append(st);
+    let speakTxt="";
+    if(a.stage==="predict"){
+      box.append(el("p",null,"O experimento está pausado. Antes de começar, o que você acha?"));box.append(el("p","chq",ch.p[0]));speakTxt=ch.p[0]+" "+ch.p[1].join(". ");
+      const o=el("div","opts");ch.p[1].forEach((t,i)=>{const b=el("button",null,t);b.onclick=()=>{a.pred=i;a.stage="do";a.fail=null;addLog(SCN[sc],"Previsão no desafio “"+ch.t+"”: "+t,null,true);renderCh(sc);};o.append(b);});box.append(o);
+    }else if(a.stage==="do"){
+      box.append(el("div","msg","Sua previsão: "+ch.p[1][a.pred]));box.append(el("p",null,ch.act));speakTxt=ch.act;
+      if(a.fail){box.append(el("div","msg",a.fail));}
+      else{const w=el("div","wait");w.append(el("i"),el("span",null,"Esperando o experimento acontecer…"));box.append(w);}
+    }else{
+      let r=a.res||"";const c=ch.p[2];if(c!=null)r+=(r?" ":"")+(a.pred===c?"Sua previsão se confirmou.":"Aconteceu diferente do que você previu. Cientistas também revisam suas ideias.");
+      box.append(el("div","msg ok","Conseguiu! "+r));box.append(el("p","chq",ch.q[0]));speakTxt=ch.q[0]+" "+ch.q[1].join(". ");
+      const o=el("div","opts");ch.q[1].forEach((t,i)=>{const b=el("button",a.wrong.includes(i)?"wrong":null,t);b.onclick=()=>{if(i===ch.q[2]){doneMem[ch.k]=1;store.set("lab_ch",doneMem);addLog(SCN[sc],"Desafio concluído: "+ch.t,null,true);lastDone[sc]=ch.t;active=null;renderCh(sc);}else{a.wrong.push(i);renderCh(sc);}};o.append(b);});box.append(o);
+      if(a.wrong.length)box.append(el("div","msg","Pense de novo: "+ch.hint));
+    }
+    const row=el("div","row");row.style.marginTop="10px";const sb=el("button","chbtn ghost","Ouvir");sb.onclick=()=>speak(speakTxt);const cb=el("button","chbtn ghost","Sair do desafio");cb.onclick=()=>{active=null;renderCh(sc);};row.append(sb,cb);box.append(row);
+    return;
+  }
+  if(lastDone[sc]){box.append(el("div","msg ok","Desafio concluído: "+lastDone[sc]));lastDone[sc]=null;}
+  box.append(el("p","small","Escolha um desafio. Você vai prever, fazer o experimento e explicar o que viu."));
+  const ul=el("ul","chlist");
+  CH[sc].forEach(ch=>{const li=el("li",done[ch.k]?"done":null);const t=el("span","t");const bx=el("span","box","✓");bx.setAttribute("aria-hidden","true");t.append(bx,el("span",null,ch.t));const b=el("button","chbtn"+(done[ch.k]?" ghost":""),done[ch.k]?"Fazer de novo":"Começar");b.onclick=()=>startCh(sc,ch);li.append(t,b);ul.append(li);});
+  box.append(ul);
+}
+Object.keys(SCN).forEach(renderCh);
+
+/* ---------- reiniciar tudo (confirmação em dois toques) ---------- */
+let rsTimer=null;
+$("#bRestart").onclick=()=>{const b=$("#bRestart");
+  if(!b.classList.contains("confirm")){b.classList.add("confirm");b.textContent="Toque de novo para apagar tudo";clearTimeout(rsTimer);rsTimer=setTimeout(()=>{b.classList.remove("confirm");b.textContent="Reiniciar laboratório";},4000);return;}
+  clearTimeout(rsTimer);b.classList.remove("confirm");b.textContent="Reiniciar laboratório";
+  active=null;log=[];Object.keys(doneMem).forEach(k=>delete doneMem[k]);
+  try{["lab_log","lab_ch","lab_goals"].forEach(k=>localStorage.removeItem(k));}catch(e){}
+  resetB();resetV();resetC();$("#sunV").value=80;$("#sunVv").textContent="forte";$("#sunC").value=70;$("#windC").value=0;
+  Object.keys(SCN).forEach(renderCh);renderLog();lastExp={};show("bancada");
+  b.textContent="Laboratório reiniciado";setTimeout(()=>{b.textContent="Reiniciar laboratório";},2000);};
+const paused=sc=>!!(active&&active.sc===sc&&active.stage==="predict");
+function drawPause(o){const c=o.ctx;c.setTransform(o.s,0,0,o.s,0,0);c.globalAlpha=.78;c.fillStyle=C.paper;c.fillRect(0,0,o.W,o.H);c.globalAlpha=1;c.fillStyle=C.ink;c.textAlign="center";c.font="800 30px 'Baloo 2',Verdana,sans-serif";c.fillText("Experimento pausado",o.W/2,o.H/2-10);c.font="17px Verdana,sans-serif";c.fillText("Primeiro responda à previsão no quadro Desafios",o.W/2,o.H/2+22);}
+[["B","s-bancada"],["V","s-varal"],["C","s-ciclo"]].forEach(([sc,id])=>{$("#"+id+" .controls").addEventListener("click",()=>{if(!paused(sc))return;const card=$("#ch"+sc);card.scrollIntoView({behavior:"smooth",block:"center"});card.parentElement.classList.remove("flash");void card.parentElement.offsetWidth;card.parentElement.classList.add("flash");},true);});
+/* ---------- laço ---------- */
+let last=performance.now(),acc=0;
+function loop(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(tab==="bancada"){if(!paused("B"))stepB(dt);drawB();if(paused("B"))drawPause(gB);acc+=dt;if(acc>0.25){explainB();acc=0;}}
+  else if(tab==="varal"){if(!paused("V"))stepV(dt);drawV();if(paused("V"))drawPause(gV);acc+=dt;if(acc>0.25){explainV();acc=0;}}
+  else if(tab==="ciclo"){if(!paused("C"))stepC(dt);drawC();if(paused("C"))drawPause(gC);acc+=dt;if(acc>0.25){explainC();acc=0;}}
+  requestAnimationFrame(loop);}
+explainB();explainV();explainC();
+requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
